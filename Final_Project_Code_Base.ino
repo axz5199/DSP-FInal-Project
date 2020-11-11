@@ -5,7 +5,7 @@
 // Breathing Rate Detection System -- Final Integration
 //
 // Pieced together from code created by: Clark Hochgraf and David Orlicki Oct 18, 2018
-// Modified by: Mark Thompson April 2020 to integrate MATLAB read and Write 
+// Modified by: Mark Thompson April 2020 to integrate MATLAB read and Write
 //              and integrate the system
 
 #include <MsTimer2.h>
@@ -27,7 +27,7 @@ const float INV_FXPT = 1.0 / DATA_FXPT; // division slow: precalculate
 
 int nSmpl = 1, sample;
 
-float xv, yv, yLF, yMF, yHF, stdLF, stdMF, stdHF;
+float xv, yv, yLF, yMF, yHF, stdLF, stdMF, stdHF, EqLp;
 float yv_low, yv_high, yv_mid;
 float printArray[9];
 int numValues = 0;
@@ -53,7 +53,7 @@ void setup()
   configureArduino();
   Serial.begin(115200);delay(5);
 
-   //Handshake with MATLAB 
+   //Handshake with MATLAB
   Serial.println(F("%Arduino Ready"));
   while (Serial.read() != 'g'); // spin
 
@@ -69,7 +69,7 @@ void loop()
 
   // syncSample();  // Wait for the interupt when actually reading ADC data
 
-  
+ 
   // Breathing Rate Detection
 
   // Declare variables
@@ -83,7 +83,7 @@ void loop()
   // ******************************************************************
   //  When finding the impulse responses of the filters use this as an input
   //  Create a Delta function in time with the first sample a 1 and all others 0
-//  xv = (loopTick == 0) ? 1.0 : 0.0; // impulse test input
+  //xv = (loopTick == 0) ? 1.0 : 0.0; // impulse test input
 
   // ******************************************************************
   //  Use this when the test vector generator is used as an input
@@ -104,19 +104,18 @@ void loop()
   //  (use DATA_FXPT).  Then round the value and truncate to a fixed point
   //  INT datatype
 
-  //fxdInputValue = long(DATA_FXPT * readValue + 0.5);
-
-  
+    fxdInputValue = long(DATA_FXPT * xv + 0.5);
+ 
 
   //  Execute the equalizer
-  //  eqOutput = EqualizerFIR( fxdInputValue, loopTick );
-  
+    eqOutput = EqualizerFIR( fxdInputValue, loopTick );
+//  Serial.println(eqOutput);
   //  Execute the noise filter.  
-  // eqOutput = NoiseFilter( eqOutput, loopTick );
-
+   lpfOutput = NoiseFilter( eqOutput, loopTick );
+//Serial.println("lpfOutput");
   //  Convert the output of the equalizer by scaling floating point
-  //xv = float(eqOutput) * INV_FXPT;
-
+  EqLp = float(lpfOutput) * INV_FXPT;
+//Serial.println("EqLp");
 
   //*******************************************************************
   // Uncomment this when measuring execution times
@@ -134,9 +133,9 @@ void loop()
   //  Compute the latest output of the running stats for the output of the filters.
   //  Pass the entire set of output values, the latest stats structure and the reset flag
 
-  
+ 
     statsReset = (statsLF.tick%100 == 0);
-    
+   
     getStats( yv_low, statsLF, statsReset);
     stdLF = statsLF.stdev;
 
@@ -152,13 +151,13 @@ void loop()
    endUsec = micros();
    execUsec = execUsec + (endUsec-startUsec);
 
-  //  Call the alarm check function to determine what breathing range 
+  //  Call the alarm check function to determine what breathing range
   //  alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
 
   //  Call the alarm function to turn on or off the tone
   //setAlarm(alarmCode, isToneEn );
 
-  
+ 
  // To print data to the serial port, use the WriteToSerial function.  
  //
  //  This is a generic way to print out variable number of values
@@ -169,16 +168,17 @@ void loop()
  
    printArray[0] = loopTick;  //  The sample number -- always print this
    printArray[1] = xv;        //  Column 2
+   printArray[2] = EqLp;
    
-   printArray[2] = stdLF;       //  Column 3
-   printArray[3] = stdMF;       //  Column 4, etc...
-   printArray[4] = stdHF;
+//   printArray[2] = stdLF;       //  Column 3
+//   printArray[3] = stdMF;       //  Column 4, etc...
+//   printArray[4] = stdHF;
 //   printArray[5] = stdLF;
 //   printArray[6] = stdMF;
 //   printArray[7] = stdHF;
 //   printArray[8] = float(alarmCode);
 
-   numValues = 5;  // The number of columns to be sent to the serial monitor (or MATLAB)
+   numValues = 3;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
  WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
@@ -196,7 +196,7 @@ int AlarmCheck( float stdLF, float stdMF, float stdHF)
 
 //  Your alarm check logic code will go here.
 
-  
+ 
 //return alarmCode;
 
 }  // end AlarmCheck
@@ -204,27 +204,27 @@ int AlarmCheck( float stdLF, float stdMF, float stdHF)
 
 
 //*******************************************************************
-int FIR_Generic(long inputX, int sampleNumber)
-{   
+int EqualizerFIR(long inputX, int sampleNumber)
+{  
   // Starting with a generic FIR filter impelementation customize only by
   // changing the length of the filter using MFILT and the values of the
   // impulse response in h
 
   // Filter type: FIR
-  
+ 
   //
   //  Set the constant HFXPT to the sum of the values of the impulse response
   //  This is to keep the gain of the impulse response at 1.
   //
   const int HFXPT = 1, MFILT = 4;
-  
-  int h[] = {};
+ 
+  int h[] = {1, 1, -1, -1};
 
 
  
   int i;
   const float INV_HFXPT = 1.0/HFXPT;
-  static long xN[MFILT] = {inputX}; 
+  static long xN[MFILT] = {inputX};
   long yOutput = 0;
 
   //
@@ -235,17 +235,81 @@ int FIR_Generic(long inputX, int sampleNumber)
     xN[i] = xN[i-1];
   }
    xN[0] = inputX;
-  
+ 
   //
   // Convolve the input sequence with the impulse response
   //
-  
+ 
   for ( i = 0; i < MFILT; i++)
   {
-    
+   
     // Explicitly cast the impulse value and the input value to LONGs then multiply
     // by the input value.  Sum up the output values
-    
+   
+    yOutput = yOutput + long(h[i]) * long( xN[i] );
+  }
+
+  //  Return the output, but scale by 1/HFXPT to keep the gain to 1
+  //  Then cast back to an integer
+  //
+
+  // Skip the first MFILT  samples to avoid the transient at the beginning due to end effects
+  if (sampleNumber < MFILT ){
+    return long(0);
+  }else{
+    return long(float(yOutput) * INV_HFXPT);
+  }
+}
+
+
+//*******************************************************************************
+
+int NoiseFilter(long inputX, int sampleNumber)
+{  
+  // Starting with a generic FIR filter impelementation customize only by
+  // changing the length of the filter using MFILT and the values of the
+  // impulse response in h
+
+  // Filter type: FIR
+ 
+  //
+  //  Set the constant HFXPT to the sum of the values of the impulse response
+  //  This is to keep the gain of the impulse response at 1.
+  //
+  // LPF FIR Filter Coefficients MFILT = 60, Fc = 85
+  const int HFXPT = 4096, MFILT = 60;
+  int h[] = {3, 1, -3, -5, -4, 1, 8, 11, 4, -10, -21, -18, 4, 31,
+  40, 17, -30, -67, -57, 7, 89, 121, 57, -86, -215, -209, 9, 407,
+  840, 1122, 1122, 840, 407, 9, -209, -215, -86, 57, 121, 89, 7, -57,
+  -67, -30, 17, 40, 31, 4, -18, -21, -10, 4, 11, 8, 1, -4,
+  -5, -3, 1, 3};
+
+
+ 
+  int i;
+  const float INV_HFXPT = 1.0/HFXPT;
+  static long xN[MFILT] = {inputX};
+  long yOutput = 0;
+
+  //
+  // Right shift old xN values. Assign new inputX to xN[0];
+  //
+  for ( i = (MFILT-1); i > 0; i-- )
+  {
+    xN[i] = xN[i-1];
+  }
+   xN[0] = inputX;
+ 
+  //
+  // Convolve the input sequence with the impulse response
+  //
+ 
+  for ( i = 0; i < MFILT; i++)
+  {
+   
+    // Explicitly cast the impulse value and the input value to LONGs then multiply
+    // by the input value.  Sum up the output values
+   
     yOutput = yOutput + long(h[i]) * long( xN[i] );
   }
 
@@ -276,12 +340,12 @@ static float b[numStages][3];
 static float a[numStages][3];
 
 //  *** Stop copying MATLAB variable declarations here
-  
+ 
   int stage;
   int i;
   static float xM0[numStages] = {0.0}, xM1[numStages] = {0.0}, xM2[numStages] = {0.0};
   static float yM0[numStages] = {0.0}, yM1[numStages] = {0.0}, yM2[numStages] = {0.0};
-  
+ 
   float yv = 0.0;
   unsigned long startTime;
 
@@ -305,19 +369,19 @@ a[2][0] = 1.0000000; a[2][1] =  -1.9562202; a[2][2] =  0.9723269;
 
 
   //  Iterate over each second order stage.  For each stage shift the input data
-  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in 
+  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in
   //  a new sample xv into the buffer;
   //
   //  Then execute the recusive filter on the buffer
   //
-  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2] 
+  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2]
   //
   //  Pass the output from this stage to the next stage by setting the input
   //  variable to the next stage x to the output of the current stage y
   //  
   //  Repeat this for each second order stage of the filter
 
-  
+ 
   for (i =0; i<numStages; i++)
     {
       yM2[i] = yM1[i]; yM1[i] = yM0[i];  xM2[i] = xM1[i]; xM1[i] = xM0[i], xM0[i] = G[i]*xv;
@@ -327,7 +391,7 @@ a[2][0] = 1.0000000; a[2][1] =  -1.9562202; a[2][2] =  0.9723269;
     }
 //
 //  execUsec += micros()-startTime;
-  
+ 
   return yv;
 }
 
@@ -345,12 +409,12 @@ static float b[numStages][3];
 static float a[numStages][3];
 
 //  *** Stop copying MATLAB variable declarations here
-  
+ 
   int stage;
   int i;
   static float xM0[numStages] = {0.0}, xM1[numStages] = {0.0}, xM2[numStages] = {0.0};
   static float yM0[numStages] = {0.0}, yM1[numStages] = {0.0}, yM2[numStages] = {0.0};
-  
+ 
   float yv = 0.0;
   unsigned long startTime;
 
@@ -376,19 +440,19 @@ a[3][0] = 1.0000000; a[3][1] =  -1.7888693; a[3][2] =  0.9553527;
 
 
   //  Iterate over each second order stage.  For each stage shift the input data
-  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in 
+  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in
   //  a new sample xv into the buffer;
   //
   //  Then execute the recusive filter on the buffer
   //
-  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2] 
+  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2]
   //
   //  Pass the output from this stage to the next stage by setting the input
   //  variable to the next stage x to the output of the current stage y
   //  
   //  Repeat this for each second order stage of the filter
 
-  
+ 
   for (i =0; i<numStages; i++)
     {
       yM2[i] = yM1[i]; yM1[i] = yM0[i];  xM2[i] = xM1[i]; xM1[i] = xM0[i], xM0[i] = G[i]*xv;
@@ -398,7 +462,7 @@ a[3][0] = 1.0000000; a[3][1] =  -1.7888693; a[3][2] =  0.9553527;
     }
 //
 //  execUsec += micros()-startTime;
-  
+ 
   return yv;
 }
 
@@ -416,12 +480,12 @@ static float b[numStages][3];
 static float a[numStages][3];
 
 //  *** Stop copying MATLAB variable declarations here
-  
+ 
   int stage;
   int i;
   static float xM0[numStages] = {0.0}, xM1[numStages] = {0.0}, xM2[numStages] = {0.0};
   static float yM0[numStages] = {0.0}, yM1[numStages] = {0.0}, yM2[numStages] = {0.0};
-  
+ 
   float yv = 0.0;
   unsigned long startTime;
 
@@ -454,19 +518,19 @@ a[5][0] = 1.0000000; a[5][1] =  -1.9740647; a[5][2] =  0.9895962;
 
 
   //  Iterate over each second order stage.  For each stage shift the input data
-  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in 
+  //  buffer ( x[kk] ) by one and the output data buffer by one ( y[k] ).  Then bring in
   //  a new sample xv into the buffer;
   //
   //  Then execute the recusive filter on the buffer
   //
-  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2] 
+  //  y[k] = -a[2]*y[k-2] + -a[1]*y[k-1] + g*b[0]*x[k] + b[1]*x[k-1] + b[2]*x[k-2]
   //
   //  Pass the output from this stage to the next stage by setting the input
   //  variable to the next stage x to the output of the current stage y
   //  
   //  Repeat this for each second order stage of the filter
 
-  
+ 
   for (i =0; i<numStages; i++)
     {
       yM2[i] = yM1[i]; yM1[i] = yM0[i];  xM2[i] = xM1[i]; xM1[i] = xM0[i], xM0[i] = G[i]*xv;
@@ -476,7 +540,7 @@ a[5][0] = 1.0000000; a[5][1] =  -1.9740647; a[5][2] =  0.9895962;
     }
 //
 //  execUsec += micros()-startTime;
-  
+ 
   return yv;
 }
 
@@ -485,7 +549,7 @@ a[5][0] = 1.0000000; a[5][1] =  -1.9740647; a[5][2] =  0.9895962;
 void getStats(float xv, stats_t &s, bool reset)
 {
   float oldMean, oldVar;
-  
+ 
   if (reset == true)
   {
     s.stdev = sqrt(s.var/s.tick);
@@ -497,7 +561,7 @@ void getStats(float xv, stats_t &s, bool reset)
   {
     oldMean = s.mean;
     s.mean = oldMean + (xv - oldMean)/(s.tick+1);
-    oldVar = s.var; 
+    oldVar = s.var;
     s.var = oldVar + (xv - oldMean)*(xv - s.mean);      
   }
   s.tick++;  
@@ -505,7 +569,7 @@ void getStats(float xv, stats_t &s, bool reset)
 
 //*******************************************************************
 float analogReadDitherAve(void)
-{ 
+{
  
 float sum = 0.0;
 int index;
@@ -517,7 +581,7 @@ int index;
     digitalWrite(DAC2, (index & B00000100)); // MSB bit mask
     sum += analogRead(LM61);
   }
-  return sum/NUM_SUBSAMPLES; // averaged subsamples 
+  return sum/NUM_SUBSAMPLES; // averaged subsamples
 
 }
 
@@ -527,7 +591,7 @@ void setAlarm(int aCode, boolean isToneEn)
 
 // Your alarm code goes here
 
-    
+   
 } // setBreathRateAlarm()
 
 //*************************************************************
@@ -537,17 +601,17 @@ float testVector(void)
   // Specify segment frequencies in bpm.
   // Test each frequency for nominally 60 seconds.
   // Adjust segment intervals for nearest integer cycle count.
-    
+   
   const int NUM_BAND = 6;
-  const float CAL_FBPM = 10.0, CAL_AMP = 2.0; 
-  
+  const float CAL_FBPM = 10.0, CAL_AMP = 2.0;
+ 
   const float FBPM[NUM_BAND] = {5.0, 10.0, 15.0, 20.0, 30.0, 70.0}; // LPF test
   static float bandAmp[NUM_BAND] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
   //  Determine the number of samples (around 600 ) that will give you an even number
-  //  of full cycles of the sinewave.  This is done to avoid a large discontinuity 
+  //  of full cycles of the sinewave.  This is done to avoid a large discontinuity
   //  between bands.  This forces the sinewave in each band to end near a value of zer
-  
+ 
   static int bandTick = int(int(FBPM[0]+0.5)*(600/FBPM[0]));
   static int simTick = 0, band = 0;
   static float Fc = FBPM[0]/600, cycleAmp = bandAmp[0];
@@ -557,7 +621,7 @@ float testVector(void)
   //  Check to see if the simulation tick has exceeded the number of tick in each band.
   //  If it has then switch to the next frequency (band) again computing how many
   //  ticks to go through to end up at the end of a cycle.
-  
+ 
   if ((simTick >= bandTick) && (FBPM[band] > 0.0))
   {
 
@@ -588,7 +652,7 @@ void configureArduino(void)
 
   analogReference(DEFAULT); // DEFAULT, INTERNAL
   analogRead(LM61); // read and discard to prime ADC registers
-  Serial.begin(115200); // 11 char/msec 
+  Serial.begin(115200); // 11 char/msec
 }
 
 
@@ -596,7 +660,7 @@ void configureArduino(void)
 void WriteToSerial( int numValues, float dataArray[] )
 {
 
-  int index=0; 
+  int index=0;
   for (index = 0; index < numValues; index++)
   {
     if (index >0)
@@ -654,3 +718,4 @@ void ISR_Sample()
 {
   sampleFlag = true;
 }
+
