@@ -10,7 +10,6 @@
 
 #include <MsTimer2.h>
 #include <SPI.h>
-#include <Tone2.h>
 
 
 const int TSAMP_MSEC = 100;
@@ -47,17 +46,12 @@ struct stats_t
   float mean, var, stdev;
 } statsLF, statsMF, statsHF;
 
-Tone toneT2;
-Tone toneT1;
-
 //**********************************************************************
 void setup()
 {
 
   configureArduino();
   Serial.begin(115200);delay(5);
-  toneT2.begin(13);
-  toneT1.begin(SPKR);
 
    //Handshake with MATLAB
   Serial.println(F("%Arduino Ready"));
@@ -594,31 +588,12 @@ int index;
 //*********************************************************************
 void setAlarm(int aCode, boolean isToneEn)
 {
-  if (isToneEn) //when tone enable is true
-  {
-    switch(aCode)
-    {
-      case 0: //System operational and normal breathing rate
-      //no sound
-      break;
 
-      case 1: //System operational and low breathing rate
-      toneT1.play(400);
-      break;
+// Your alarm code goes here
 
-      case 2: //System operational and high breathing rate
-      toneT1.play(800);
-      break;
+   
+} // setBreathRateAlarm()
 
-      default: //System operation by rate is undetermined OR System not operational
-      toneT1.play(200);
-    }
-  }
-  else //when tone enable is false
-  {
-    toneT1.stop(); //turn off speaker
-  }
-}
 //*************************************************************
 float testVector(void)
 {
@@ -745,3 +720,26 @@ void ISR_Sample()
 }
 
 //******************************************************************
+
+int AlarmCheck( float stdLF, float stdMF, float stdHF)
+{
+//This function only checks if the system is operational and if so, it gives a go ahead
+//and returns the value 1 to indicate the working operation
+int retVal = 0;
+//  Your alarm check logic code will go here.
+if(stdHF > 0) //check for the lowest threshold. If greater than system is operational
+{
+  retVal = 1;
+}
+else //if not greater than lowest thresthold, then the system is off.
+{
+  retVal = 0;
+}
+  
+//return alarmCode;
+return(retVal);
+}  // end AlarmCheck
+ 
+
+
+//*******************************************************************
