@@ -10,6 +10,7 @@
 
 #include <MsTimer2.h>
 #include <SPI.h>
+#include <Tone2.h>
 
 
 const int TSAMP_MSEC = 100;
@@ -28,6 +29,7 @@ const float INV_FXPT = 1.0 / DATA_FXPT; // division slow: precalculate
 int nSmpl = 1, sample;
 
 float xv, yv, yLF, yMF, yHF, stdLF, stdMF, stdHF, EqLp;
+float yv_low, yv_high, yv_mid;
 float printArray[9];
 int numValues = 0;
 
@@ -45,12 +47,17 @@ struct stats_t
   float mean, var, stdev;
 } statsLF, statsMF, statsHF;
 
+Tone toneT2;
+Tone toneT1;
+
 //**********************************************************************
 void setup()
 {
 
   configureArduino();
   Serial.begin(115200);delay(5);
+  toneT2.begin(13);
+  toneT1.begin(SPKR);
 
    //Handshake with MATLAB
   Serial.println(F("%Arduino Ready"));
@@ -122,9 +129,9 @@ void loop()
 
   // ******************************************************************
   //  Compute the output of the filter using the cascaded SOS sections
-   yLF = IIR_Low_Pass(xv); // second order systems cascade  
-   yHF = IIR_High_Pass(xv);
-   yMF = IIR_Band_Pass(xv);
+   yv_low = IIR_Low_Pass(xv); // second order systems cascade  
+   yv_high = IIR_High_Pass(xv);
+   yv_mid = IIR_Band_Pass(xv);
 
 
 
@@ -135,13 +142,13 @@ void loop()
  
     statsReset = (statsLF.tick%100 == 0);
    
-    getStats( yLF, statsLF, statsReset);
+    getStats( yv_low, statsLF, statsReset);
     stdLF = statsLF.stdev;
 
-    getStats( yMF, statsMF, statsReset);
+    getStats( yv_mid, statsMF, statsReset);
     stdMF = statsMF.stdev;
 
-    getStats( yHF, statsHF, statsReset);
+    getStats( yv_high, statsHF, statsReset);
     stdHF = statsHF.stdev;
 
 
@@ -151,7 +158,7 @@ void loop()
    execUsec = execUsec + (endUsec-startUsec);
 
   //  Call the alarm check function to determine what breathing range
-    alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
+  //  alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
 
   //  Call the alarm function to turn on or off the tone
   //setAlarm(alarmCode, isToneEn );
@@ -185,42 +192,21 @@ void loop()
     Serial.print("Average execution time (uSec) = ");Serial.println( float(execUsec)/NUM_SAMPLES );
     while(true); // spin forever
   }
- 
+
 } // loop()
 
-
 //******************************************************************
-
 int AlarmCheck( float stdLF, float stdMF, float stdHF)
 {
-//This function only checks if the system is operational and if so, it gives a go ahead
-//and returns the value 1 to indicate the working operation
-int retVal = 4;
-int threshold = 0;
-float stdarr[] = {stdMF,stdLF,stdHF};
-//  Your alarm check logic code will go here.
-if(stdLF > threshold && stdMF > threshold && stdHF > threshold){
-  int set = stdarr[0];
-  for(int i = 1; i < 3; i++)
-    if (stdarr[i] > set){
-      set = stdarr[i];
-  if(stdLF == set)
-    retVal = 1
-  if(stdMF == set)
-    retVal = 0
-  if(stdHF == set)
-    retVal = 2
-  else
-    retVal = 3
-}
 
+
+//  Your alarm check logic code will go here.
+
+ 
 //return alarmCode;
-return(retVal);
+
 }  // end AlarmCheck
  
-
-
-//*******************************************************************
 
 
 //*******************************************************************
@@ -608,12 +594,31 @@ int index;
 //*********************************************************************
 void setAlarm(int aCode, boolean isToneEn)
 {
+  if (isToneEn) //when tone enable is true
+  {
+    switch(aCode)
+    {
+      case 0: //System operational and normal breathing rate
+      //no sound
+      break;
 
-// Your alarm code goes here
+      case 1: //System operational and low breathing rate
+      toneT1.play(400);
+      break;
 
-   
-} // setBreathRateAlarm()
+      case 2: //System operational and high breathing rate
+      toneT1.play(800);
+      break;
 
+      default: //System operation by rate is undetermined OR System not operational
+      toneT1.play(200);
+    }
+  }
+  else //when tone enable is false
+  {
+    toneT1.stop(); //turn off speaker
+  }
+}
 //*************************************************************
 float testVector(void)
 {
@@ -739,3 +744,4 @@ void ISR_Sample()
   sampleFlag = true;
 }
 
+//******************************************************************
