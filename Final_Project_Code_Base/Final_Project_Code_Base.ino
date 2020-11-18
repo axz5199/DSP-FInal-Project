@@ -719,3 +719,27 @@ void ISR_Sample()
   sampleFlag = true;
 }
 
+//******************************************************************
+
+int AlarmCheck( float stdLF, float stdMF, float stdHF)
+{
+//This function only checks if the system is operational and if so, it gives a go ahead
+//and returns the value 1 to indicate the working operation
+int retVal = 0;
+//  Your alarm check logic code will go here.
+if(stdHF > 0) //check for the lowest threshold. If greater than system is operational
+{
+  retVal = 1;
+}
+else //if not greater than lowest thresthold, then the system is off.
+{
+  retVal = 0;
+}
+  
+//return alarmCode;
+return(retVal);
+}  // end AlarmCheck
+ 
+
+
+//*******************************************************************
