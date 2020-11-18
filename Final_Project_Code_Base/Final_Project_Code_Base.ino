@@ -28,7 +28,6 @@ const float INV_FXPT = 1.0 / DATA_FXPT; // division slow: precalculate
 int nSmpl = 1, sample;
 
 float xv, yv, yLF, yMF, yHF, stdLF, stdMF, stdHF, EqLp;
-float yv_low, yv_high, yv_mid;
 float printArray[9];
 int numValues = 0;
 
@@ -123,9 +122,9 @@ void loop()
 
   // ******************************************************************
   //  Compute the output of the filter using the cascaded SOS sections
-   yv_low = IIR_Low_Pass(xv); // second order systems cascade  
-   yv_high = IIR_High_Pass(xv);
-   yv_mid = IIR_Band_Pass(xv);
+   yLF = IIR_Low_Pass(xv); // second order systems cascade  
+   yHF = IIR_High_Pass(xv);
+   yMF = IIR_Band_Pass(xv);
 
 
 
@@ -136,13 +135,13 @@ void loop()
  
     statsReset = (statsLF.tick%100 == 0);
    
-    getStats( yv_low, statsLF, statsReset);
+    getStats( yLF, statsLF, statsReset);
     stdLF = statsLF.stdev;
 
-    getStats( yv_mid, statsMF, statsReset);
+    getStats( yMF, statsMF, statsReset);
     stdMF = statsMF.stdev;
 
-    getStats( yv_high, statsHF, statsReset);
+    getStats( yHF, statsHF, statsReset);
     stdHF = statsHF.stdev;
 
 
@@ -152,7 +151,7 @@ void loop()
    execUsec = execUsec + (endUsec-startUsec);
 
   //  Call the alarm check function to determine what breathing range
-  //  alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
+    alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
 
   //  Call the alarm function to turn on or off the tone
   //setAlarm(alarmCode, isToneEn );
@@ -186,21 +185,42 @@ void loop()
     Serial.print("Average execution time (uSec) = ");Serial.println( float(execUsec)/NUM_SAMPLES );
     while(true); // spin forever
   }
-
+ 
 } // loop()
 
+
 //******************************************************************
+
 int AlarmCheck( float stdLF, float stdMF, float stdHF)
 {
-
-
+//This function only checks if the system is operational and if so, it gives a go ahead
+//and returns the value 1 to indicate the working operation
+int retVal = 4;
+int threshold = 0;
+float stdarr[] = {stdMF,stdLF,stdHF};
 //  Your alarm check logic code will go here.
+if(stdLF > threshold && stdMF > threshold && stdHF > threshold){
+  int set = stdarr[0];
+  for(int i = 1; i < 3; i++)
+    if (stdarr[i] > set){
+      set = stdarr[i];
+  if(stdLF == set)
+    retVal = 1
+  if(stdMF == set)
+    retVal = 0
+  if(stdHF == set)
+    retVal = 2
+  else
+    retVal = 3
+}
 
- 
 //return alarmCode;
-
+return(retVal);
 }  // end AlarmCheck
  
+
+
+//*******************************************************************
 
 
 //*******************************************************************
@@ -719,27 +739,3 @@ void ISR_Sample()
   sampleFlag = true;
 }
 
-//******************************************************************
-
-int AlarmCheck( float stdLF, float stdMF, float stdHF)
-{
-//This function only checks if the system is operational and if so, it gives a go ahead
-//and returns the value 1 to indicate the working operation
-int retVal = 0;
-//  Your alarm check logic code will go here.
-if(stdHF > 0) //check for the lowest threshold. If greater than system is operational
-{
-  retVal = 1;
-}
-else //if not greater than lowest thresthold, then the system is off.
-{
-  retVal = 0;
-}
-  
-//return alarmCode;
-return(retVal);
-}  // end AlarmCheck
- 
-
-
-//*******************************************************************
