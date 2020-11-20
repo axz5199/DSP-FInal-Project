@@ -87,7 +87,7 @@ void loop()
 
   // ******************************************************************
   //  Read input value in ADC counts  -- Get simulated data from MATLAB
-  //readValue = ReadFromMATLAB();
+  readValue = ReadFromMATLAB();
 
   // ******************************************************************
   //  Read input value from ADC using Dithering, and averaging
