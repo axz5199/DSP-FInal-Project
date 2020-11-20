@@ -3,7 +3,7 @@ int AlarmCheck( float stdLF, float stdMF, float stdHF)
 //This function only checks if the system is operational and if so, it gives a go ahead
 //and returns the value 1 to indicate the working operation
 int retVal = 4;
-int threshold = 0;
+float threshold = 0.0121;
 float stdarr[] = {stdMF,stdLF,stdHF};
 //  Your alarm check logic code will go here.
 if(stdLF > threshold && stdMF > threshold && stdHF > threshold){
