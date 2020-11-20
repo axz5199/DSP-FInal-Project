@@ -147,7 +147,7 @@ void loop()
    execUsec = execUsec + (endUsec-startUsec);
 
   //  Call the alarm check function to determine what breathing range
-  //  alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
+   alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
 
   //  Call the alarm function to turn on or off the tone
   //setAlarm(alarmCode, isToneEn );
@@ -165,13 +165,13 @@ void loop()
    printArray[1] = xv;        //  Column 2
    printArray[2] = EqLp;
    
-//   printArray[2] = stdLF;       //  Column 3
-//   printArray[3] = stdMF;       //  Column 4, etc...
-//   printArray[4] = stdHF;
+   printArray[2] = stdLF;       //  Column 3
+   printArray[3] = stdMF;       //  Column 4, etc...
+   printArray[4] = stdHF;
 //   printArray[5] = stdLF;
 //   printArray[6] = stdMF;
 //   printArray[7] = stdHF;
-//   printArray[8] = float(alarmCode);
+   printArray[8] = float(alarmCode);
 
    numValues = 3;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
