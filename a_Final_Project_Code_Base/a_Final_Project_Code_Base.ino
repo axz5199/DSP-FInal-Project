@@ -173,7 +173,7 @@ void loop()
 //   printArray[7] = stdHF;
    printArray[8] = float(alarmCode);
 
-   numValues = 3;  // The number of columns to be sent to the serial monitor (or MATLAB)
+   numValues = 7;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
  WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
