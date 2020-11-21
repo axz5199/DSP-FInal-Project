@@ -109,7 +109,7 @@ void loop()
    lpfOutput = NoiseFilter( eqOutput, loopTick );
 //Serial.println("lpfOutput");
   //  Convert the output of the equalizer by scaling floating point
-  EqLp = float(lpfOutput) * INV_FXPT;
+  EqLp = float(lpfOutput) * INV_FXPT; //EQUALIZER AND NOISE FILTER OUTPUT
 //Serial.println("EqLp");
 
   //*******************************************************************
@@ -118,9 +118,10 @@ void loop()
 
   // ******************************************************************
   //  Compute the output of the filter using the cascaded SOS sections
-   yv_low = IIR_Low_Pass(xv); // second order systems cascade  
-   yv_high = IIR_High_Pass(xv);
-   yv_mid = IIR_Band_Pass(xv);
+   yv_low = IIR_Low_Pass(EqLp); // second order systems cascade  
+   yv_mid = IIR_Band_Pass(EqLp);
+   yv_high = IIR_High_Pass(EqLp);
+  
 
 
 
@@ -163,17 +164,22 @@ void loop()
  
    printArray[0] = loopTick;  //  The sample number -- always print this
    printArray[1] = xv;        //  Column 2
-   printArray[2] = EqLp;
-   
-   printArray[2] = stdLF;       //  Column 3
-   printArray[3] = stdMF;       //  Column 4, etc...
-   printArray[4] = stdHF;
-//   printArray[5] = stdLF;
+   printArray[2] = yv_low;
+   printArray[3] = yv_mid;
+   printArray[4] = yv_high;
+   printArray[5] = stdLF;
+   printArray[6] = stdMF;
+   printArray[7] = stdHF;
+   printArray[8] = float(alarmCode);
 //   printArray[6] = stdMF;
 //   printArray[7] = stdHF;
-   printArray[8] = float(alarmCode);
+//   printArray[8] = float(alarmCode);
 
+<<<<<<< Updated upstream
    numValues = 7;  // The number of columns to be sent to the serial monitor (or MATLAB)
+=======
+   numValues = 9;  // The number of columns to be sent to the serial monitor (or MATLAB)
+>>>>>>> Stashed changes
 
  WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
