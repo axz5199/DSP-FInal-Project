@@ -7,15 +7,15 @@ float threshold = 0.0121;
 float stdarr[] = {stdMF,stdLF,stdHF};
 //  Your alarm check logic code will go here.
 if(stdLF > threshold || stdMF > threshold || stdHF > threshold){
-  int set = stdarr[0];
+  int highest = stdarr[0];
   for(int i = 1; i < 3; i++)
-    if (stdarr[i] > set)
-      set = stdarr[i];
-  if(stdLF == set)
+    if (stdarr[i] > highest)
+      highest = stdarr[i];
+  if(stdLF == highest)
     retVal = 1;
-  if(stdMF == set)
+  if(stdMF == highest)
     retVal = 0;
-  if(stdHF == set)
+  if(stdHF == highest)
     retVal = 2;
   else
     retVal = 3;
