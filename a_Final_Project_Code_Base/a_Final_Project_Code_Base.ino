@@ -87,11 +87,11 @@ void loop()
 
   // ******************************************************************
   //  Read input value in ADC counts  -- Get simulated data from MATLAB
-  readValue = ReadFromMATLAB();
+  //readValue = ReadFromMATLAB();
 
   // ******************************************************************
   //  Read input value from ADC using Dithering, and averaging
-  //readValue = analogReadDitherAve();
+  readValue = analogReadDitherAve();
 
 
   //  Convert the floating point number to a fixed point value.  First
