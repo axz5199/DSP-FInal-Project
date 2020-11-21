@@ -6,7 +6,7 @@ int retVal = 4;
 float threshold = 0.0121;
 float stdarr[] = {stdMF,stdLF,stdHF};
 //  Your alarm check logic code will go here.
-if(stdLF > threshold && stdMF > threshold && stdHF > threshold){
+if(stdLF > threshold || stdMF > threshold || stdHF > threshold){
   int set = stdarr[0];
   for(int i = 1; i < 3; i++)
     if (stdarr[i] > set)
