@@ -29,6 +29,10 @@ function outData = CaptureArduinoData(varargin)
 %           plot will plot a column of data versus the first column of data
 %           Default -- [] No plots are created
 %
+% 'DataFile' -- Name of the data file to use to send to the Arduino over
+%           the serial port.  If a file is specified then it is assumed
+%           that data will be sent to the Arduino, nothing else is required
+%
 %
 %  Output Arguments
 %
@@ -56,6 +60,7 @@ defaultPortTimeOut = 1;  %  1 second port time out
 defaultEchoData = true;  %  Default to echo the RX String
 defaultActivePlot = [];  %  Default active plotting to false
 defaultGraphDelay = 1;  %  Default delay between updates to the graphs
+defaultDataFile = '';  %  Default file name
 
 
 p.addParameter('ComPort', defaultComPort, @isnumeric);
@@ -66,6 +71,7 @@ p.addParameter('PortTimeOut', defaultPortTimeOut, @isnumeric);
 p.addParameter('EchoData', defaultEchoData, @islogical);
 p.addParameter('NumActivePlots', defaultActivePlot, @isnumeric);
 p.addParameter('GraphDelay', defaultGraphDelay, @isnumeric);
+p.addParameter('DataFile', defaultDataFile, @ischar);
 
 
 p.parse(varargin{:});
@@ -79,6 +85,7 @@ portTimeOut = inputArgs.PortTimeOut;
 echoData = inputArgs.EchoData;
 nActivePlots = inputArgs.NumActivePlots;
 graphDelay = inputArgs.GraphDelay;
+sendDataFileName = inputArgs.DataFile;
 
 
 TAB = char(9);
@@ -125,9 +132,48 @@ firstLine = true;
 rowIndex = 1;
 outData = [];
 graphPointCount = 0;
+sendDataFlag = false;   %  Flag to indicate if there is data to be sent
+sendDataCounter = 1;
 
+%  If there is a file to be sent then load the file 
+
+if ~isempty( sendDataFileName )
+    
+    %  Load the file
+    sendSerialData = load( sendDataFileName );
+    
+    %  The file has a variable named breathingData which has at least two columns
+    %  The first column is the sample number.  The second column breathing  data
+    %
+    %  There may be multiple columns of data?
+    %
+    dataMx = sendSerialData.breathingData;
+
+    %  Reshape the breathing data so that it is in one column only.  Don't
+    %  use the sample number column
+    
+    [nSendSamples,nColumns] = size(dataMx);
+    inputData = reshape( dataMx(:,2:end), nSendSamples * (nColumns-1) , 1 );
+    
+    sendDataFlag = true;
+    
+end
 
 while dataAvailable && contReadSamples
+    
+    %  If the send data flag is true then grab the next value and send it
+    %  over the port
+    
+    if sendDataFlag
+        
+        %  Get the next value from the input matrix and send it
+        sendValue = inputData( sendDataCounter );
+        hArd.WriteNumeric( sendValue );
+        
+        sendDataCounter = sendDataCounter + 1;
+        
+    end
+    
     
     %  Idle while waiting for data in the buffer
     

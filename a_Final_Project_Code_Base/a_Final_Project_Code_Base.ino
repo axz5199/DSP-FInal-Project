@@ -75,7 +75,7 @@ void loop()
 
   // ******************************************************************
   //  Read input value in ADC counts  -- Get simulated data from MATLAB
-  //readValue = ReadFromMATLAB();
+//  readValue = ReadFromMATLAB();
 
   // ******************************************************************
   //  Read input value from ADC using Dithering, and averaging
@@ -143,23 +143,19 @@ void loop()
   //  numValues -- An integer indicating the number of values in the array.  
  
    printArray[0] = loopTick;  //  The sample number -- always print this
-   printArray[1] = xv;        //  Column 2
-   printArray[2] = yv_low;
-   printArray[3] = yv_mid;
-   printArray[4] = yv_high;
-   printArray[5] = stdLF;
-   printArray[6] = stdMF;
-   printArray[7] = stdHF;
-   printArray[8] = float(alarmCode);
+   printArray[1] = xv;
+//   printArray[2] = yv_low;
+//   printArray[3] = yv_mid;
+//   printArray[4] = yv_high;
+//   printArray[5] = stdLF;
+//   printArray[6] = stdMF;
+//   printArray[7] = stdHF;
+//   printArray[8] = float(alarmCode);
 //   printArray[6] = stdMF;
 //   printArray[7] = stdHF;
 //   printArray[8] = float(alarmCode);
 
-<<<<<<< Updated upstream
-   numValues = 7;  // The number of columns to be sent to the serial monitor (or MATLAB)
-=======
-   numValues = 9;  // The number of columns to be sent to the serial monitor (or MATLAB)
->>>>>>> Stashed changes
+  numValues = 2;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
   WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
