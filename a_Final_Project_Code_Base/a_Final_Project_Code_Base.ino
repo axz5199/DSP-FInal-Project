@@ -75,18 +75,18 @@ void loop()
 
   // ******************************************************************
   //  Read input value in ADC counts  -- Get simulated data from MATLAB
-//  readValue = ReadFromMATLAB();
+  readValue = ReadFromMATLAB();
 
   // ******************************************************************
   //  Read input value from ADC using Dithering, and averaging
-  readValue = analogReadDitherAve();
+//  readValue = analogReadDitherAve();
 
   //  Convert the floating point number to a fixed point value.  First
   //  scale the floating point value by a number to increase its resolution
   //  (use DATA_FXPT).  Then round the value and truncate to a fixed point
   //  INT datatype
 
-  fxdInputValue = long(DATA_FXPT * xv + 0.5);
+  fxdInputValue = long(DATA_FXPT * readValue + 0.5);
  
   //  Execute the equalizer
   eqOutput = EqualizerFIR( fxdInputValue, loopTick );
