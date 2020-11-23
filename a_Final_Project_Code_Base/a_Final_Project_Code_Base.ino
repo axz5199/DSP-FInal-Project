@@ -3,7 +3,7 @@
 #include <Tone2.h>
 
 const int TSAMP_MSEC = 100;
-const int NUM_SAMPLES = 3600;  // 3600;
+const int NUM_SAMPLES = 2390;  // 3600;
 const int NUM_SUBSAMPLES = 160;
 const int DAC0 = 3, DAC1 = 4, DAC2 = 5, LM61 = A0, VDITH = A1;
 const int V_REF = 5.0;
@@ -143,12 +143,11 @@ void loop()
   //  numValues -- An integer indicating the number of values in the array.  
  
    printArray[0] = loopTick;  //  The sample number -- always print this
-   //printArray[1] = xv;
-  printArray[1] = readValue;
-//   printArray[2] = yv_low;
-//   printArray[3] = yv_mid;
-//   printArray[4] = yv_high;
-//   printArray[5] = stdLF;
+   printArray[1] = readValue;
+   printArray[2] = EqLp;
+   printArray[3] = yv_low;
+   printArray[4] = yv_mid;
+   printArray[5] = yv_high;
 //   printArray[6] = stdMF;
 //   printArray[7] = stdHF;
 //   printArray[8] = float(alarmCode);
@@ -156,7 +155,7 @@ void loop()
 //   printArray[7] = stdHF;
 //   printArray[8] = float(alarmCode);
 
-  numValues = 2;  // The number of columns to be sent to the serial monitor (or MATLAB)
+  numValues = 6;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
   WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
