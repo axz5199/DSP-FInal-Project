@@ -144,7 +144,7 @@ void loop()
  
    printArray[0] = loopTick;  //  The sample number -- always print this
    printArray[1] = xv;
-//   printArray[2] = yv_low;
+//   printArray[2] = readValue;
 //   printArray[3] = yv_mid;
 //   printArray[4] = yv_high;
 //   printArray[5] = stdLF;
