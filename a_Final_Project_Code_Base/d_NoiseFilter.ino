@@ -1,4 +1,4 @@
-int NoiseFilter(long inputX, int sampleNumber)
+sint NoiseFilter(long inputX, int sampleNumber)
 {  
   // Starting with a generic FIR filter impelementation customize only by
   // changing the length of the filter using MFILT and the values of the
