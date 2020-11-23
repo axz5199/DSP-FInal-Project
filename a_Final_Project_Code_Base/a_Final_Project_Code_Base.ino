@@ -143,7 +143,8 @@ void loop()
   //  numValues -- An integer indicating the number of values in the array.  
  
    printArray[0] = loopTick;  //  The sample number -- always print this
-   printArray[1] = xv;
+   //printArray[1] = xv;
+  printArray[1] = readValue;
 //   printArray[2] = yv_low;
 //   printArray[3] = yv_mid;
 //   printArray[4] = yv_high;
