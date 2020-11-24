@@ -1,9 +1,12 @@
 int AlarmCheck( float stdLF, float stdMF, float stdHF)
 {
   int code = 4;
-  float threshold = 0.0121;
+  float threshold = 0.05;
+  float thresLow = 0.03;
+  float thresMed = 0.1;
+  float thresHigh = 0.15;
 
-  if (stdLF > threshold || stdMF > threshold || stdHF > threshold) //if system is operational
+  if (stdLF > thresLow || stdMF > thresMed || stdHF > thresHigh) //if system is operational
   {
     if ((stdLF > stdMF) and (stdLF > stdHF)) //if low rate is the greatest
     {
