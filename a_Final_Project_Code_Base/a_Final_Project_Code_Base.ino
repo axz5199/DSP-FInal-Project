@@ -71,15 +71,15 @@ void loop()
 
   // ******************************************************************
   //  Use this when the test vector generator is used as an input
-  xv = testVector();
+//  xv = testVector();
 
   // ******************************************************************
   //  Read input value in ADC counts  -- Get simulated data from MATLAB
-  readValue = ReadFromMATLAB();
+//  readValue = ReadFromMATLAB();
 
   // ******************************************************************
   //  Read input value from ADC using Dithering, and averaging
-//  readValue = analogReadDitherAve();
+  readValue = analogReadDitherAve();
 
   //  Convert the floating point number to a fixed point value.  First
   //  scale the floating point value by a number to increase its resolution

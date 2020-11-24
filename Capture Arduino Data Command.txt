@@ -4,4 +4,4 @@ data=CaptureArduinoData('ComPort',4,'BaudRate',115200,'GraphDelay',100)
 
 data=CaptureArduinoData('ComPort',4,'BaudRate',115200,'NumActivePlots',4,'GraphDelay',100,'DataFile','SweptTone.mat')
 
-data=CaptureArduinoData('ComPort',4,'BaudRate',115200,'GraphDelay',100,'DataFile','SweptTone.mat')
+data=CaptureArduinoData('ComPort',4,'BaudRate',115200,'GraphDelay',100,'DataFile','BreathingCapture3.mat')
