@@ -46,7 +46,7 @@ void setup()
 
   //Handshake with MATLAB
   Serial.println(F("%Arduino Ready"));
-  while (Serial.read() != 'g'); // spin
+//  while (Serial.read() != 'g'); // spin
 
   MsTimer2::set(TSAMP_MSEC, ISR_Sample); // Set sample msec, ISR name
   MsTimer2::start(); // start running the Timer  
