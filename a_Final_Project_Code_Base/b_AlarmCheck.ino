@@ -1,22 +1,27 @@
 int AlarmCheck( float stdLF, float stdMF, float stdHF)
 {
-  int retVal = 4;
+  int code = 4;
   float threshold = 0.0121;
-  float stdarr[] = {stdMF,stdLF,stdHF};
 
-  if(stdLF > threshold || stdMF > threshold || stdHF > threshold)
+  if (stdLF > threshold || stdMF > threshold || stdHF > threshold) //if system is operational
   {
-    int highest = stdarr[0];
-    
-    for(int i = 1; i < 3; i++)
+    if ((stdLF > stdMF) and (stdLF > stdHF)) //if low rate is the greatest
     {
-      if (stdarr[i] > highest) { highest = stdarr[i]; }
+      code = 1;
     }
-    if(stdLF == highest) { retVal = 1; }
-    if(stdMF == highest) { retVal = 0; }
-    if(stdHF == highest) { retVal = 2; }
-    else { retVal = 3; }
+    else if ((stdMF > stdLF) and (stdMF > stdHF)) //if mid rate is the greatest
+    {
+      code = 0;
+    }
+    else if ((stdHF > stdLF) and (stdHF > stdMF)) //if high rate is the greatest
+    {
+      code = 2;
+    }
+    else //operation rate is undetermined
+    {
+      code = 3;
+    }
   }
-  
-  return(retVal);
+
+  return code;
 }

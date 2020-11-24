@@ -148,14 +148,14 @@ void loop()
    printArray[3] = yv_low;
    printArray[4] = yv_mid;
    printArray[5] = yv_high;
-//   printArray[6] = stdMF;
-//   printArray[7] = stdHF;
-//   printArray[8] = float(alarmCode);
-//   printArray[6] = stdMF;
+   printArray[6] = stdLF;
+   printArray[7] = stdMF;
+   printArray[8] = stdHF;
+   printArray[9] = AlarmCheck(stdLF, stdMF, stdHF);
 //   printArray[7] = stdHF;
 //   printArray[8] = float(alarmCode);
 
-  numValues = 6;  // The number of columns to be sent to the serial monitor (or MATLAB)
+  numValues = 10;  // The number of columns to be sent to the serial monitor (or MATLAB)
 
   WriteToSerial( numValues, printArray );  //  Write to the serial monitor (or MATLAB)
 
