@@ -161,6 +161,8 @@ void loop()
 
   if (++loopTick >= NUM_SAMPLES){
     Serial.print("Average execution time (uSec) = ");Serial.println( float(execUsec)/NUM_SAMPLES );
+    isToneEn = false;
+    setAlarm(alarmCode, isToneEn );
     while(true); // spin forever
   }
 } // loop()
