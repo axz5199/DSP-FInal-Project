@@ -23,7 +23,7 @@ int numValues = 0;
 
 int loopTick = 0;
 bool statsReset;
-bool isToneEn = false;
+bool isToneEn = true;
 
 unsigned long startUsec, endUsec, execUsec;
 
@@ -131,7 +131,7 @@ void loop()
   alarmCode = AlarmCheck( stdLF, stdMF, stdHF );
 
   //  Call the alarm function to turn on or off the tone
-  //setAlarm(alarmCode, isToneEn );
+  setAlarm(alarmCode, isToneEn );
 
  
   // To print data to the serial port, use the WriteToSerial function.  

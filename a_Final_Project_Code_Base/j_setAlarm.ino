@@ -5,7 +5,7 @@ void setAlarm(int aCode, boolean isToneEn)
     switch(aCode)
     {
       case 0: //System operational and normal breathing rate
-      //no sound
+      toneT1.play(0);
       break;
 
       case 1: //System operational and low breathing rate
